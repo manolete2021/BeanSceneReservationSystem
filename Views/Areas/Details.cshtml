@@ -1,0 +1,20 @@
+@model Area
+
+@{
+    ViewData["Title"] = "Area Details";
+}
+
+<h1>Area Details</h1>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Area Name</dt>
+        <dd class="col-sm-10">@Model.AreaName</dd>
+    </dl>
+</div>
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.AreaID">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

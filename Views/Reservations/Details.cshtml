@@ -1,0 +1,133 @@
+@model Reservation
+
+@{
+    ViewData["Title"] = "Reservation Details";
+    var canManage = User.IsInRole("Manager") || User.IsInRole("Staff");
+}
+
+<h1>Reservation Details</h1>
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">Customer</dt>
+        <dd class="col-sm-10">@ViewBag.CustomerName</dd>
+
+        <dt class="col-sm-2">Sitting</dt>
+        <dd class="col-sm-10">@ViewBag.SittingLabel</dd>
+
+        <dt class="col-sm-2">Start Time</dt>
+        <dd class="col-sm-10">@Model.StartTime.ToString("dd/MM/yyyy HH:mm")</dd>
+
+        <dt class="col-sm-2">Duration</dt>
+        <dd class="col-sm-10">@Model.Duration</dd>
+
+        <dt class="col-sm-2">Number of Guests</dt>
+        <dd class="col-sm-10">@Model.NumberOfGuests</dd>
+
+        <dt class="col-sm-2">Source</dt>
+        <dd class="col-sm-10">@Model.Source</dd>
+
+        <dt class="col-sm-2">Notes</dt>
+        <dd class="col-sm-10">@Model.Notes</dd>
+
+        <dt class="col-sm-2">Status</dt>
+        <dd class="col-sm-10">@Model.Status</dd>
+    </dl>
+</div>
+
+@if (canManage)
+{
+<div class="mb-3">
+    @if (Model.Status == "Pending")
+    {
+        <form asp-action="ChangeStatus" asp-route-id="@Model.ReservationID" method="post" class="d-inline me-2">
+            <input type="hidden" name="newStatus" value="Confirmed" />
+            <button type="submit" class="btn btn-primary">Confirm Reservation</button>
+        </form>
+        <form asp-action="ChangeStatus" asp-route-id="@Model.ReservationID" method="post" class="d-inline">
+            <input type="hidden" name="newStatus" value="Cancelled" />
+            <button type="submit" class="btn btn-danger">Cancel Reservation</button>
+        </form>
+    }
+    else if (Model.Status == "Confirmed")
+    {
+        <form asp-action="ChangeStatus" asp-route-id="@Model.ReservationID" method="post" class="d-inline me-2">
+            <input type="hidden" name="newStatus" value="Seated" />
+            <button type="submit" class="btn btn-primary">Mark as Seated</button>
+        </form>
+        <form asp-action="ChangeStatus" asp-route-id="@Model.ReservationID" method="post" class="d-inline">
+            <input type="hidden" name="newStatus" value="Cancelled" />
+            <button type="submit" class="btn btn-danger">Cancel Reservation</button>
+        </form>
+    }
+    else if (Model.Status == "Seated")
+    {
+        <form asp-action="ChangeStatus" asp-route-id="@Model.ReservationID" method="post" class="d-inline">
+            <input type="hidden" name="newStatus" value="Completed" />
+            <button type="submit" class="btn btn-primary">Mark as Completed</button>
+        </form>
+    }
+</div>
+}
+
+@{
+    var assignedTables = ViewBag.AssignedTables as List<Table> ?? new List<Table>();
+    var restaurantTables = ViewBag.RestaurantTables as List<Table> ?? new List<Table>();
+    var assignedTableIds = ViewBag.AssignedTableIds as List<int> ?? new List<int>();
+}
+
+<h2>Assigned Tables</h2>
+@if (assignedTables.Count == 0)
+{
+    <p>No tables assigned.</p>
+}
+else
+{
+    <ul>
+        @foreach (var assignedTable in assignedTables)
+        {
+            <li>@assignedTable.TableNumber (capacity @assignedTable.Capacity)</li>
+        }
+    </ul>
+}
+
+@if (canManage)
+{
+<h2>Restaurant Tables</h2>
+<form asp-action="AssignTables" asp-route-id="@Model.ReservationID" method="post" class="mb-3">
+    @if (restaurantTables.Count == 0)
+    {
+        <p>No restaurant tables have been created yet.</p>
+    }
+    else
+    {
+        @foreach (var restaurantTable in restaurantTables)
+        {
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="tableIds"
+                       value="@restaurantTable.TableID"
+                       id="table-@restaurantTable.TableID"
+                       @(assignedTableIds.Contains(restaurantTable.TableID) ? "checked" : null) />
+                <label class="form-check-label" for="table-@restaurantTable.TableID">
+                    @restaurantTable.TableNumber (capacity @restaurantTable.Capacity)
+                </label>
+            </div>
+        }
+        <button type="submit" class="btn btn-primary mt-2">Save Tables</button>
+    }
+</form>
+}
+
+<div>
+    @if (canManage)
+    {
+        <a asp-action="Edit" asp-route-id="@Model.ReservationID">Edit</a>
+        <text> | </text>
+    }
+    <a asp-action="Index">Back to List</a>
+</div>

@@ -1,0 +1,50 @@
+@model Table
+
+@{
+    ViewData["Title"] = "Edit Table";
+}
+
+<h1>Edit Table</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" asp-route-id="@Model.TableID">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="TableID" />
+            <div class="mb-3">
+                <label asp-for="AreaID" class="form-label">Area</label>
+                <select asp-for="AreaID" class="form-select" asp-items="ViewBag.Areas" required>
+                    <option value="">-- Select Area --</option>
+                </select>
+                <span asp-validation-for="AreaID" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Table Number</label>
+                <input asp-for="TableNumber" class="form-control" readonly />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Capacity" class="form-label">Capacity</label>
+                <input asp-for="Capacity" class="form-control" type="number" min="1" required />
+                <span asp-validation-for="Capacity" class="text-danger"></span>
+            </div>
+            <div class="form-check mb-3">
+                <input asp-for="IsAvailable" class="form-check-input" />
+                <label asp-for="IsAvailable" class="form-check-label">Available</label>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

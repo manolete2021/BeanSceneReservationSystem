@@ -1,0 +1,67 @@
+@model ReservationReportViewModel
+
+@{
+    ViewData["Title"] = "Reservation Report";
+}
+
+<h1>Reservation Report</h1>
+
+<form method="get" asp-action="Index" class="row g-3 align-items-end mb-4">
+    <div class="col-md-3">
+        <label class="form-label" for="fromDate">From Date</label>
+        <input class="form-control" type="date" id="fromDate" name="fromDate" value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="toDate">To Date</label>
+        <input class="form-control" type="date" id="toDate" name="toDate" value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary">Generate Report</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Clear</a>
+    </div>
+</form>
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+@if (ViewData.ModelState.IsValid)
+{
+    <p>Total Reservations: @Model.TotalReservations</p>
+    <p>Total Guests: @Model.TotalGuests</p>
+
+    <p>Pending: @Model.PendingCount</p>
+    <p>Confirmed: @Model.ConfirmedCount</p>
+    <p>Seated: @Model.SeatedCount</p>
+    <p>Completed: @Model.CompletedCount</p>
+    <p>Cancelled: @Model.CancelledCount</p>
+
+    @if (Model.Reservations.Count == 0)
+    {
+        <p>No reservations found for this report.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Reservation ID</th>
+                    <th>Customer</th>
+                    <th>Start Time</th>
+                    <th>Number of Guests</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reservation in Model.Reservations)
+                {
+                    <tr>
+                        <td>@reservation.ReservationID</td>
+                        <td>@reservation.Customer</td>
+                        <td>@reservation.StartTime.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@reservation.NumberOfGuests</td>
+                        <td>@reservation.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}

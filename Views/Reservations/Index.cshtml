@@ -1,0 +1,96 @@
+@model IEnumerable<Reservation>
+
+@{
+    ViewData["Title"] = "Reservations";
+    var canManage = User.IsInRole("Manager") || User.IsInRole("Staff");
+    var canDelete = User.IsInRole("Manager");
+    var selectedStatus = ViewBag.SelectedStatus as string;
+    var statuses = new[] { "Pending", "Confirmed", "Seated", "Completed", "Cancelled" };
+}
+
+<h1>Reservations</h1>
+
+<form method="get" asp-action="Index" class="row g-3 align-items-end mb-4">
+    <div class="col-md-4">
+        <label class="form-label" for="customerName">Customer</label>
+        <input class="form-control" type="text" id="customerName" name="customerName" value="@ViewBag.CustomerName" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="reservationDate">Date</label>
+        <input class="form-control" type="date" id="reservationDate" name="reservationDate" value="@ViewBag.ReservationDate" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="status">Status</label>
+        <select class="form-select" id="status" name="status">
+            <option value="">All statuses</option>
+            @foreach (var reservationStatus in statuses)
+            {
+                if (selectedStatus == reservationStatus)
+                {
+                    <option value="@reservationStatus" selected>@reservationStatus</option>
+                }
+                else
+                {
+                    <option value="@reservationStatus">@reservationStatus</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary">Search</button>
+        <a class="btn btn-outline-secondary" asp-action="Index">Clear</a>
+    </div>
+</form>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+
+@if (!Model.Any())
+{
+    <p>No reservations found.</p>
+}
+else
+{
+<table class="table">
+    <thead>
+        <tr>
+            <th>Customer Name</th>
+            <th>Sitting Type</th>
+            <th>Start Time</th>
+            <th>Duration</th>
+            <th>Number of Guests</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@(item.CustomerMember == null ? "" : $"{item.CustomerMember.FirstName} {item.CustomerMember.LastName}")</td>
+                <td>@(item.Sitting == null ? "" : item.Sitting.SittingType)</td>
+                <td>@item.StartTime.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>@item.Duration</td>
+                <td>@item.NumberOfGuests</td>
+                <td>@item.Source</td>
+                <td>@item.Status</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.ReservationID">Details</a>
+                    @if (canManage)
+                    {
+                        <text> | </text>
+                        <a asp-action="Edit" asp-route-id="@item.ReservationID">Edit</a>
+                    }
+                    @if (canDelete)
+                    {
+                        <text> | </text>
+                        <a asp-action="Delete" asp-route-id="@item.ReservationID">Delete</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+}

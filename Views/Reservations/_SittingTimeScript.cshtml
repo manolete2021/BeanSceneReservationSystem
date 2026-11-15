@@ -1,0 +1,137 @@
+<script>
+    (function () {
+        var sittingSelect = document.getElementById('sittingSelect');
+        var timeSelect = document.getElementById('reservationTime');
+        var durationSelect = document.getElementById('durationSelect');
+
+        if (!sittingSelect || !timeSelect || !durationSelect) {
+            return;
+        }
+
+        function pad(value) {
+            return value < 10 ? '0' + value : String(value);
+        }
+
+        function toMinutes(value) {
+            var parts = value.split(':');
+            return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+        }
+
+        function generateTimes(start, end) {
+            var startMinutes = toMinutes(start);
+            var endMinutes = toMinutes(end);
+            var times = [];
+
+            for (var minutes = startMinutes; minutes < endMinutes; minutes += 30) {
+                var hours = Math.floor(minutes / 60);
+                var mins = minutes % 60;
+                times.push(pad(hours) + ':' + pad(mins));
+            }
+
+            return times;
+        }
+
+        function generateDurations(start, end) {
+            var startMinutes = toMinutes(start);
+            var endMinutes = toMinutes(end);
+            var durations = [];
+
+            for (var minutes = 30; startMinutes + minutes <= endMinutes; minutes += 30) {
+                durations.push(minutes);
+            }
+
+            return durations;
+        }
+
+        function clearDuration() {
+            durationSelect.innerHTML = '<option value="">-- Select Duration --</option>';
+            durationSelect.disabled = true;
+        }
+
+        function updateDurations(resetDuration) {
+            var option = sittingSelect.options[sittingSelect.selectedIndex];
+            var end = option ? option.getAttribute('data-end') : null;
+            var start = timeSelect.value;
+
+            if (!start || !end) {
+                clearDuration();
+                return;
+            }
+
+            var selectedDuration = resetDuration
+                ? ''
+                : (durationSelect.value || durationSelect.getAttribute('data-selected') || '');
+
+            if (selectedDuration === '0') {
+                selectedDuration = '';
+            }
+
+            var durations = generateDurations(start, end);
+            durationSelect.disabled = durations.length === 0;
+            durationSelect.innerHTML = '<option value="">-- Select Duration --</option>';
+
+            for (var i = 0; i < durations.length; i++) {
+                var durationOption = document.createElement('option');
+                durationOption.value = durations[i];
+                durationOption.textContent = durations[i] + ' minutes';
+                durationSelect.appendChild(durationOption);
+            }
+
+            if (resetDuration && durations.length > 0) {
+                durationSelect.value = String(durations[0]);
+            } else if (selectedDuration && durations.indexOf(parseInt(selectedDuration, 10)) !== -1) {
+                durationSelect.value = selectedDuration;
+            } else if (durations.length > 0) {
+                durationSelect.value = String(durations[0]);
+            }
+        }
+
+        function updateSittingDetails(resetTime) {
+            var option = sittingSelect.options[sittingSelect.selectedIndex];
+            var start = option ? option.getAttribute('data-start') : null;
+            var end = option ? option.getAttribute('data-end') : null;
+
+            if (!start || !end) {
+                timeSelect.innerHTML = '<option value="">-- Select Time --</option>';
+                timeSelect.disabled = true;
+                clearDuration();
+                return;
+            }
+
+            var selectedTime = resetTime
+                ? ''
+                : (timeSelect.value || timeSelect.getAttribute('data-selected') || '');
+
+            timeSelect.disabled = false;
+            timeSelect.innerHTML = '<option value="">-- Select Time --</option>';
+
+            var times = generateTimes(start, end);
+            for (var i = 0; i < times.length; i++) {
+                var timeOption = document.createElement('option');
+                timeOption.value = times[i];
+                timeOption.textContent = times[i];
+                timeSelect.appendChild(timeOption);
+            }
+
+            if (resetTime && times.length > 0) {
+                timeSelect.value = times[0];
+            } else if (selectedTime && times.indexOf(selectedTime) !== -1) {
+                timeSelect.value = selectedTime;
+            } else if (times.length > 0) {
+                timeSelect.value = times[0];
+            }
+
+            updateDurations(resetTime);
+        }
+
+        sittingSelect.addEventListener('change', function () {
+            updateSittingDetails(true);
+        });
+
+        timeSelect.addEventListener('change', function () {
+            updateDurations(true);
+        });
+
+        updateSittingDetails(false);
+    })();
+</script>

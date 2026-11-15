@@ -1,0 +1,95 @@
+@model ReservationViewModel
+
+@{
+    ViewData["Title"] = "Edit Reservation";
+    var sittingOptions = ViewBag.SittingOptions as List<Sitting> ?? new List<Sitting>();
+}
+
+<h1>Edit Reservation</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" asp-route-id="@Model.ReservationID">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="ReservationID" />
+            <input type="hidden" asp-for="RowVersion" />
+            <div class="mb-3">
+                <label asp-for="CustomerID" class="form-label">Customer</label>
+                <select asp-for="CustomerID" class="form-select" asp-items="ViewBag.Customers" required>
+                    <option value="">-- Select Customer --</option>
+                </select>
+                <span asp-validation-for="CustomerID" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="SittingID" class="form-label">Sitting</label>
+                <select asp-for="SittingID" id="sittingSelect" class="form-select" required>
+                    <option value="">-- Select Sitting --</option>
+                    @foreach (var sitting in sittingOptions)
+                    {
+                        <option value="@sitting.SittingID"
+                                data-start="@sitting.StartTime.ToString("HH:mm")"
+                                data-end="@sitting.EndTime.ToString("HH:mm")">
+                            @sitting.SittingType (@sitting.StartTime.ToString("dd/MM/yyyy HH:mm") - @sitting.EndTime.ToString("HH:mm"))
+                        </option>
+                    }
+                </select>
+                <span asp-validation-for="SittingID" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ReservationTime" class="form-label">Start Time</label>
+                <select asp-for="ReservationTime" id="reservationTime" class="form-select" asp-items="ViewBag.ReservationTimes" data-selected="@Model.ReservationTime" required>
+                    <option value="">-- Select Time --</option>
+                </select>
+                <span asp-validation-for="ReservationTime" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Duration" class="form-label">Duration</label>
+                <select asp-for="Duration" id="durationSelect" class="form-select" asp-items="ViewBag.Durations" data-selected="@Model.Duration" required>
+                    <option value="">-- Select Duration --</option>
+                </select>
+                <span asp-validation-for="Duration" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="NumberOfGuests" class="form-label">Number of Guests</label>
+                <input asp-for="NumberOfGuests" class="form-control" type="number" min="1" required />
+                <span asp-validation-for="NumberOfGuests" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Source" class="form-label">Source</label>
+                <select asp-for="Source" class="form-select" required>
+                    <option value="">-- Select Source --</option>
+                    <option value="Online">Online</option>
+                    <option value="Mobile">Mobile</option>
+                    <option value="In-person">In-person</option>
+                    <option value="Email">Email</option>
+                    <option value="Phone">Phone</option>
+                </select>
+                <span asp-validation-for="Source" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label">Notes</label>
+                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Notes" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Status</label>
+                <p class="form-control-plaintext">@Model.Status</p>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <partial name="_SittingTimeScript" />
+}

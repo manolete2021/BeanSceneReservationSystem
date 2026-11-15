@@ -1,0 +1,94 @@
+@model SittingViewModel
+
+@{
+    ViewData["Title"] = "Edit Sitting";
+    var minDate = DateTime.Today.ToString("yyyy-MM-dd");
+    var selectedStart = Model.StartTime.ToString(@"hh\:mm");
+    var selectedEnd = Model.EndTime.ToString(@"hh\:mm");
+}
+
+<h1>Edit Sitting</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" asp-route-id="@Model.SittingID">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="SittingID" />
+            <div class="mb-3">
+                <label asp-for="SittingType" class="form-label">Sitting Type</label>
+                <select asp-for="SittingType" id="sittingType" class="form-select" required>
+                    <option value="">-- Select Sitting Type --</option>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                </select>
+                <span asp-validation-for="SittingType" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Date" class="form-label">Date</label>
+                <input asp-for="Date" class="form-control" type="date" asp-format="{0:yyyy-MM-dd}" min="@minDate" required />
+                <span asp-validation-for="Date" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="StartTime" class="form-label">Start Time</label>
+                <select name="StartTime" id="startTime" class="form-select" required>
+                    <option value="">-- Select Start Time --</option>
+                    @foreach (var option in ViewBag.TimeOptions)
+                    {
+                        if (option.Value == selectedStart)
+                        {
+                            <option value="@option.Value" selected="selected">@option.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@option.Value">@option.Text</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="EndTime" class="form-label">End Time</label>
+                <select name="EndTime" id="endTime" class="form-select" required>
+                    <option value="">-- Select End Time --</option>
+                    @foreach (var option in ViewBag.TimeOptions)
+                    {
+                        if (option.Value == selectedEnd)
+                        {
+                            <option value="@option.Value" selected="selected">@option.Text</option>
+                        }
+                        else
+                        {
+                            <option value="@option.Value">@option.Text</option>
+                        }
+                    }
+                </select>
+                <span asp-validation-for="EndTime" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Capacity" class="form-label">Capacity</label>
+                <input asp-for="Capacity" class="form-control" type="number" min="1" required />
+                <span asp-validation-for="Capacity" class="text-danger"></span>
+            </div>
+            <div class="form-check mb-3">
+                <input asp-for="IsClosed" class="form-check-input" />
+                <label asp-for="IsClosed" class="form-check-label">Closed</label>
+            </div>
+            <div class="mb-3">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <partial name="_SittingTypeTimesScript" />
+}

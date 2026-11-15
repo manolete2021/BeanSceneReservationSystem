@@ -1,0 +1,40 @@
+@model IEnumerable<Table>
+
+@{
+    ViewData["Title"] = "Tables";
+    var areaNames = ViewBag.AreaNames as Dictionary<int, string>;
+}
+
+<h1>Tables</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Table Number</th>
+            <th>Area Name</th>
+            <th>Capacity</th>
+            <th>Available</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.TableNumber</td>
+                <td>@(areaNames != null && areaNames.ContainsKey(item.AreaID) ? areaNames[item.AreaID] : "")</td>
+                <td>@item.Capacity</td>
+                <td>@(item.IsAvailable ? "Yes" : "No")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.TableID">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@item.TableID">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.TableID">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
