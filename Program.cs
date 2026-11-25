@@ -26,6 +26,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Register the reservation service for dependency injection.
 builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Use Identity for email login and integer role keys.
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()

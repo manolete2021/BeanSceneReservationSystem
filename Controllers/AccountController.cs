@@ -1,4 +1,5 @@
 using BeanSceneReservationSystem.Data;
+using BeanSceneReservationSystem.Interfaces;
 using BeanSceneReservationSystem.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,15 +12,21 @@ public class AccountController : Controller
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ApplicationDbContext _context;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        ApplicationDbContext context)
+        ApplicationDbContext context,
+        IEmailService emailService,
+        ILogger<AccountController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _context = context;
+        _emailService = emailService;
+        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -84,6 +91,16 @@ public class AccountController : Controller
             await _userManager.DeleteAsync(user);
             ModelState.AddModelError(string.Empty, "The account could not be created. Please try again.");
             return View(model);
+        }
+
+        try
+        {
+            await _emailService.SendRegistrationConfirmationAsync(model.Email.Trim(), model.FirstName.Trim());
+        }
+        catch (Exception ex)
+        {
+            // Keep the new account when the confirmation email cannot be sent.
+            _logger.LogWarning(ex, "Registration confirmation email could not be sent.");
         }
 
         await _signInManager.SignInAsync(user, isPersistent: false);

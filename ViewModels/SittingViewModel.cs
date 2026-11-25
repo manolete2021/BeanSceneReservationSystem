@@ -4,6 +4,7 @@ public class SittingViewModel
 {
     public int SittingID { get; set; }
     public string SittingType { get; set; } = string.Empty;
+    public string? CustomSittingType { get; set; }
     public DateTime Date { get; set; }
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }

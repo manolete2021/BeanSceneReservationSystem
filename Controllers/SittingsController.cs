@@ -14,8 +14,9 @@ public class SittingsController : Controller
     private const string SittingHasReservationsMessage =
         "This sitting cannot be deleted because it has existing reservations.";
 
-    // A sitting can only be Breakfast, Lunch, or Dinner.
+    // Breakfast, Lunch, and Dinner stay the standard sitting types.
     private static readonly string[] ValidTypes = { "Breakfast", "Lunch", "Dinner" };
+    private const string OtherSittingTypeOption = "Other / Special Event...";
 
     private readonly ApplicationDbContext _context;
 
@@ -63,13 +64,27 @@ public class SittingsController : Controller
         var startDateTime = CombineDateAndTime(model.Date, model.StartTime);
         var endDateTime = CombineDateAndTime(model.Date, model.EndTime);
 
-        await ValidateSittingViewModelAsync(model, startDateTime, endDateTime, existingSittingId: null);
+        if (model.SittingType == OtherSittingTypeOption)
+        {
+            model.CustomSittingType = model.CustomSittingType?.Trim() ?? string.Empty;
+        }
+
+        await ValidateSittingViewModelAsync(
+            model,
+            startDateTime,
+            endDateTime,
+            existingSittingId: null,
+            allowCustomSittingType: true);
 
         if (ModelState.IsValid)
         {
+            var sittingType = model.SittingType == OtherSittingTypeOption
+                ? model.CustomSittingType?.Trim() ?? string.Empty
+                : model.SittingType;
+
             var sitting = new Sitting
             {
-                SittingType = model.SittingType,
+                SittingType = sittingType,
                 StartTime = startDateTime,
                 EndTime = endDateTime,
                 Capacity = model.Capacity,
@@ -252,11 +267,23 @@ public class SittingsController : Controller
         SittingViewModel model,
         DateTime startDateTime,
         DateTime endDateTime,
-        int? existingSittingId)
+        int? existingSittingId,
+        bool allowCustomSittingType = false)
     {
         ModelState.Remove(nameof(model.SittingType));
 
-        if (!ValidTypes.Contains(model.SittingType))
+        var usingCustomOption = allowCustomSittingType && model.SittingType == OtherSittingTypeOption;
+        var sittingType = usingCustomOption ? model.CustomSittingType : model.SittingType;
+        var hasSittingType = usingCustomOption
+            ? !string.IsNullOrWhiteSpace(sittingType)
+            : ValidTypes.Contains(model.SittingType);
+
+        if (usingCustomOption && !hasSittingType)
+        {
+            ModelState.Remove(nameof(model.CustomSittingType));
+            ModelState.AddModelError(nameof(model.CustomSittingType), "Please enter a custom sitting type.");
+        }
+        else if (!usingCustomOption && !hasSittingType)
         {
             ModelState.AddModelError(nameof(model.SittingType), "Please select a Sitting Type.");
         }
@@ -289,7 +316,7 @@ public class SittingsController : Controller
             ModelState.AddModelError(nameof(model.Capacity), "Capacity must be greater than 0.");
         }
 
-        if (ValidTypes.Contains(model.SittingType) &&
+        if (hasSittingType &&
             model.Date.Date >= DateTime.Today &&
             endDateTime > startDateTime)
         {
@@ -297,7 +324,7 @@ public class SittingsController : Controller
             var dayEnd = dayStart.AddDays(1);
 
             var conflictExists = await _context.Sittings.AnyAsync(s =>
-                s.SittingType == model.SittingType &&
+                s.SittingType == sittingType &&
                 s.StartTime >= dayStart &&
                 s.StartTime < dayEnd &&
                 s.StartTime < endDateTime &&

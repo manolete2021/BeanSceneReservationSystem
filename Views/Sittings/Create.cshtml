@@ -6,6 +6,7 @@
     var hasTimes = Model.StartTime != TimeSpan.Zero || Model.EndTime != TimeSpan.Zero;
     var selectedStart = hasTimes ? Model.StartTime.ToString(@"hh\:mm") : "";
     var selectedEnd = hasTimes ? Model.EndTime.ToString(@"hh\:mm") : "";
+    var showCustomSittingType = Model.SittingType == "Other / Special Event...";
 }
 
 <h1>Create Sitting</h1>
@@ -22,8 +23,14 @@
                     <option value="Breakfast">Breakfast</option>
                     <option value="Lunch">Lunch</option>
                     <option value="Dinner">Dinner</option>
+                    <option value="Other / Special Event...">Other / Special Event...</option>
                 </select>
                 <span asp-validation-for="SittingType" class="text-danger"></span>
+            </div>
+            <div class="mb-3 @(showCustomSittingType ? "" : "d-none")" id="customSittingTypeGroup">
+                <label for="customSittingType" class="form-label">Custom Sitting Type</label>
+                <input asp-for="CustomSittingType" id="customSittingType" class="form-control" placeholder="Example: Happy Birthday" />
+                <span asp-validation-for="CustomSittingType" class="text-danger"></span>
             </div>
             <div class="mb-3">
                 <label asp-for="Date" class="form-label">Date</label>
@@ -91,4 +98,31 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <partial name="_SittingTypeTimesScript" />
+    <script>
+        (function () {
+            var sittingType = document.getElementById('sittingType');
+            var customGroup = document.getElementById('customSittingTypeGroup');
+            var customInput = document.getElementById('customSittingType');
+            var otherOption = 'Other / Special Event...';
+
+            if (!sittingType || !customGroup || !customInput) {
+                return;
+            }
+
+            function updateCustomSittingType() {
+                var showCustom = sittingType.value === otherOption;
+                customGroup.classList.toggle('d-none', !showCustom);
+
+                if (showCustom) {
+                    customInput.setAttribute('required', 'required');
+                } else {
+                    customInput.removeAttribute('required');
+                    customInput.value = '';
+                }
+            }
+
+            sittingType.addEventListener('change', updateCustomSittingType);
+            updateCustomSittingType();
+        })();
+    </script>
 }

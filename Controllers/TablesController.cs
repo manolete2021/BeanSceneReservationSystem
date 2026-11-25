@@ -21,10 +21,42 @@ public class TablesController : Controller
     {
         var tables = await _context.Tables.ToListAsync();
         var areas = await _context.Areas.ToListAsync();
+        var areaNames = areas.ToDictionary(a => a.AreaID, a => a.AreaName);
 
-        ViewBag.AreaNames = areas.ToDictionary(a => a.AreaID, a => a.AreaName);
+        ViewBag.AreaNames = areaNames;
+
+        // Display order is Main, Outside, then Balcony.
+        // Table numbers are sorted numerically so M10 follows M9.
+        var areaOrder = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Main"] = 1,
+            ["Outside"] = 2,
+            ["Balcony"] = 3
+        };
+
+        tables = tables
+            .OrderBy(table => GetAreaOrder(table.AreaID))
+            .ThenBy(table => GetTableSequence(table.TableNumber))
+            .ToList();
 
         return View(tables);
+
+        int GetAreaOrder(int areaId)
+        {
+            if (areaNames.TryGetValue(areaId, out var areaName) &&
+                areaOrder.TryGetValue(areaName, out var order))
+            {
+                return order;
+            }
+
+            return int.MaxValue;
+        }
+
+        static int GetTableSequence(string tableNumber)
+        {
+            var digits = new string(tableNumber.Where(char.IsDigit).ToArray());
+            return int.TryParse(digits, out var number) ? number : int.MaxValue;
+        }
     }
 
     public async Task<IActionResult> Details(int? id)

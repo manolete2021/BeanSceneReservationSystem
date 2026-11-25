@@ -135,12 +135,37 @@ public class CustomersController : Controller
     {
         var customerMember = await _context.CustomerMembers.FindAsync(id);
 
-        if (customerMember != null)
+        if (customerMember == null)
         {
-            _context.CustomerMembers.Remove(customerMember);
+            return RedirectToAction(nameof(Index));
         }
 
-        await _context.SaveChangesAsync();
+        var hasReservations = await _context.Reservations
+            .AnyAsync(r => r.CustomerID == customerMember.CustomerID);
+
+        if (hasReservations)
+        {
+            ModelState.AddModelError(
+                string.Empty,
+                "This customer cannot be deleted because they have existing reservations.");
+            return View(customerMember);
+        }
+
+        _context.CustomerMembers.Remove(customerMember);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            _context.Entry(customerMember).State = EntityState.Unchanged;
+            ModelState.AddModelError(
+                string.Empty,
+                "This customer cannot be deleted because they have existing reservations.");
+            return View(customerMember);
+        }
+
         return RedirectToAction(nameof(Index));
     }
 
